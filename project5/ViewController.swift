@@ -19,6 +19,7 @@ class ViewController: UITableViewController {
         super.viewDidLoad()
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(promptAnswer))
+        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(startGame))
 
         if let startURL = Bundle.main.url(forResource: "start", withExtension: "txt"){
             if let startURLContent = try? String(contentsOf: startURL){
@@ -29,7 +30,13 @@ class ViewController: UITableViewController {
             allWords = ["Empty because no file in bundle"]
         }
         
+        startGame()
+    }
+    
+    @objc func startGame(){
         title = allWords.randomElement()
+        usedWords.removeAll()
+        tableView.reloadData()
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -58,33 +65,51 @@ class ViewController: UITableViewController {
     
     func submit(_ answer: String){
         
-        let errorTitle: String
-        let errorMessage: String
         let lowerAnswer = answer.lowercased()
         
         if doesContain(word: lowerAnswer){
             if isNew(word: lowerAnswer){
                 if isReal(word: lowerAnswer){
-                    usedWords.insert(answer, at: 0)
-                    
-                    let indexPath = IndexPath(row: 0, section: 0)
-                    tableView.insertRows(at: [indexPath], with: .fade)
-                    return
+                    if isShortWord(word: lowerAnswer) {
+                        
+                        usedWords.insert(answer, at: 0)
+                        let indexPath = IndexPath(row: 0, section: 0)
+                        tableView.insertRows(at: [indexPath], with: .fade)
+                        return
+                    } else {
+
+                        showErrorMessage(err: "short")
+                    }
+                   
                 } else {
-                    
-                    errorTitle = "Wrong Word"
-                    errorMessage = "what the heck is \(answer), dont make up words you sexy"
-                    
+                    showErrorMessage(err: "wrong")
                 }
             } else {
-                
-                errorTitle = "Duplicate word"
-                errorMessage = "\(answer) is already exist babe"
+                showErrorMessage(err: "duplicate")
             }
         } else {
-            guard let title = title else { return }
+            showErrorMessage(err: "default")
+        }
+    }
+    
+    func showErrorMessage(err message: String){
+        let errorTitle: String
+        let errorMessage: String
+        
+        switch message {
+        case "short":
+            errorTitle = "Short Word"
+            errorMessage = "Enter a word longer than 3 letters"
+
+        case "duplicate":
+            errorTitle = "Duplicate word"
+            errorMessage = "your answer is already there babe"
+        case "wrong":
+            errorTitle = "Wrong Word"
+            errorMessage = "what the heck, dont make up words you sexy"
+        default:
             errorTitle = "Really?!"
-            errorMessage = "Do you think \(answer) is an anagram of \(title)? Really Man?"
+            errorMessage = "ahh i cant handle it"
         }
         
         let ac = UIAlertController(title: errorTitle, message: errorMessage, preferredStyle: .alert)
@@ -130,6 +155,14 @@ class ViewController: UITableViewController {
         } else{
             return false
             
+        }
+    }
+    
+    func isShortWord(word: String) -> Bool {
+        if word.count < 4 {
+            return false
+        } else {
+            return true
         }
     }
 
