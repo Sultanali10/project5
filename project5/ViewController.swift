@@ -17,6 +17,8 @@ class ViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(promptAnswer))
 
         if let startURL = Bundle.main.url(forResource: "start", withExtension: "txt"){
             if let startURLContent = try? String(contentsOf: startURL){
@@ -38,6 +40,21 @@ class ViewController: UITableViewController {
         let cell = tableView.dequeueReusableCell(withIdentifier: "word", for: indexPath)
         cell.textLabel?.text = usedWords[indexPath.row]
         return cell
+    }
+    
+    @objc func promptAnswer(){
+        let ac = UIAlertController(title: nil, message: "Enter Word", preferredStyle: .alert)
+        ac.addTextField()
+        
+        let okButton = UIAlertAction(title: "OK", style: .default) {
+           [weak self , weak ac] _ in
+            guard let answer = ac?.textFields?[0].text else { return }
+            self?.submit(answer)
+        }
+    }
+    
+    func submit(_ answer: String){
+        
     }
 
 
